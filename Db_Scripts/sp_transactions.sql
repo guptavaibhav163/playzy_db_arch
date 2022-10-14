@@ -13,9 +13,17 @@ CREATE PROCEDURE `sp_transactions`
 )
 BEGIN
 	
-    DECLARE cur_amount INT;
+    DECLARE v_cur_amount INT;
     
-    SELECT current_amount INTO cur_amount FROM transaction_details WHERE transaction_id = v_transaction_id;
+    SELECT IFNULL(MAX(current_amount),0) 
+    INTO v_cur_amount
+    FROM 
+    transaction_detail td
+    INNER JOIN 
+    users u
+    ON 
+    td.user_id = u.user_id
+    WHERE u.username = v_username;
     
     INSERT INTO transaction
     (
@@ -40,7 +48,7 @@ BEGIN
     WHERE username = v_username
     ;
     
-    IF cur_amount = 0 
+    IF v_cur_amount = 0 
     THEN
 		INSERT INTO transaction_detail
 		(
@@ -56,11 +64,11 @@ BEGIN
 		SELECT 
 		v_transaction_id
 		,u.user_id
-		,v_current_amt
+		,v_cur_amount
 		,v_added_amt
-		,v_current_amt
-		,v_current_amt
-		,v_current_amt
+		,v_added_amt
+		,v_added_amt
+		,v_added_amt
 		,u.wallet_id
 		FROM 
 		users u 
@@ -84,9 +92,9 @@ BEGIN
 		,u.user_id
 		,v_current_amt
 		,v_added_amt
+		,v_current_amt + v_added_amt
 		,v_current_amt
-		,v_current_amt
-		,v_current_amt
+		,v_current_amt + v_added_amt -- + bonus
 		,u.wallet_id
 		FROM 
 		users u 
@@ -103,9 +111,11 @@ BEGIN
     ON w.user_id = u.user_id
     INNER JOIN 
     transaction_detail td
-    ON w.user_id = td.user_id
+	ON w.user_id = td.user_id
+	AND td.transaction_id = v_transaction_id
     SET w.transaction_id = v_transaction_id
     ,w.transaction_detail_id = td.transaction_detail_id
+    ,w.total_amount = td.total_amount
     WHERE u.username = v_username
     ;
      
