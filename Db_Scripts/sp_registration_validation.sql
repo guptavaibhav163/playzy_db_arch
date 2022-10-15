@@ -10,6 +10,7 @@ IN v_user_name VARCHAR(45)
 , IN v_date_of_registration DATE
 , IN v_email VARCHAR(100)
 , IN v_phone_number BIGINT
+, IN v_bonus BIGINT
 )
 BEGIN
 
@@ -36,7 +37,7 @@ BEGIN
     
 	INSERT INTO wallet 
 	 (
-		user_id 
+	    user_id 
 	 )
 	SELECT 
 	user_id 
@@ -46,12 +47,13 @@ BEGIN
 		
 	SET SQL_SAFE_UPDATES = 0;
 	UPDATE 
-	users as u
+	users AS u
 	INNER JOIN 
-	wallet as w
+	wallet AS w
 	ON 
 	u.user_id = w.user_id
-	SET u.wallet_id = w.wallet_id 
+	SET u.wallet_id = w.wallet_id
+	,w.bonus_amount = v_bonus
 	WHERE u.username = v_user_name ;
     
 END$$

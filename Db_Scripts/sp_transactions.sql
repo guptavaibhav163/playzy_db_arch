@@ -4,8 +4,8 @@ DROP PROCEDURE IF EXISTS `sp_transactions`;
 DELIMITER $$
 CREATE PROCEDURE `sp_transactions` 
 (
-	 IN v_username VARCHAR(45)
-	,IN v_transaction_id BIGINT
+     IN v_username VARCHAR(45)
+    ,IN v_transaction_id BIGINT
     ,IN v_transaction_date DATE
     ,IN v_transaction_time VARCHAR(20)
     ,IN v_added_amt INT
@@ -15,7 +15,7 @@ BEGIN
 	
     DECLARE v_cur_amount INT;
     
-    SELECT IFNULL(MAX(current_amount),0) 
+    SELECT IFNULL(MAX(updated_amount),0) 
     INTO v_cur_amount
     FROM 
     transaction_detail td
@@ -25,7 +25,7 @@ BEGIN
     td.user_id = u.user_id
     WHERE u.username = v_username;
     
-    INSERT INTO transaction
+    INSERT INTO TRANSACTION
     (
 		transaction_id
         ,user_id
@@ -67,11 +67,15 @@ BEGIN
 		,v_cur_amount
 		,v_added_amt
 		,v_added_amt
-		,v_added_amt
+		,w.bonus_amount
 		,v_added_amt
 		,u.wallet_id
 		FROM 
 		users u 
+		INNER JOIN 
+		wallet w
+		ON 
+		u.user_id = w.user_id
 		WHERE
 		u.username = v_username
 		;
@@ -90,14 +94,18 @@ BEGIN
 		SELECT 
 		v_transaction_id
 		,u.user_id
-		,v_current_amt
+		,v_cur_amount
 		,v_added_amt
-		,v_current_amt + v_added_amt
-		,v_current_amt
-		,v_current_amt + v_added_amt -- + bonus
+		,v_cur_amount + v_added_amt 
+		,w.bonus_amount
+		,v_cur_amount + v_added_amt + w.bonus_amount
 		,u.wallet_id
 		FROM 
-		users u 
+		users u  
+		INNER JOIN 
+		wallet w
+		ON 
+		u.user_id = w.user_id
 		WHERE
 		u.username = v_username
 		;
